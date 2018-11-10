@@ -1,4 +1,14 @@
-﻿function Get-HPEOVAuthToken
+﻿<#
+.SYNOPSIS
+    CmdLets for administration HPE OneView through RESTful API  
+.NOTES
+    Version:        1.0
+    Author:         Ivan V. Smirnov (ione.smirnoff@gmail.com)
+    Company:        Transneft Technology, LLC
+    Creation Date:  09.11.2018  
+#>
+
+function Get-HPEOVAuthToken
 {
     [CmdletBinding()]
     param (
@@ -18,23 +28,21 @@
         [String] 
         $Password
     )
-
     begin
     {        
-        $body = [Ordered] @{
+        $body = [Ordered]@{
             'authLoginDomain' = $Domain.ToUpper()
             'password'        = $Password
             'userName'        = $UserName
             'loginMsgAck'     = 'true'}
 
-        $headers = [Ordered] @{
+        $headers = [Ordered]@{
             'X-Api-Version' = '600'
             'Content-Type'  = 'application/json'}
         
         $jsonBody = ConvertTo-Json $body
         $uri      = 'https://' + $OVApplianceIP + '/rest/login-sessions'
     }
-
     process
     {
         try
@@ -68,16 +76,14 @@ function Delete-HPEOVAlert
         [String] 
         $AlertID
     )
-
     begin
     {
-        $headers = [Ordered] @{
+        $headers = [Ordered]@{
             'X-Api-Version' = '200'
             'Auth'          = $Auth}
 
         $uri = 'https://' + $OVApplianceIP + '/rest/alerts/' + $AlertID + '?force=true'
     }
-
     process
     {
         try
