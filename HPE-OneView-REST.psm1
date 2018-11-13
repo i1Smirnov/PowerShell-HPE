@@ -25,14 +25,16 @@ function Get-HPEOVAuthToken
         $UserName,
         
         [Parameter(Mandatory = $true)]
-        [String] 
+        [SecureString] 
         $Password
     )
     begin
     {        
+        $encPassword = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($Password))
+
         $body = [Ordered]@{
             'authLoginDomain' = $Domain.ToUpper()
-            'password'        = $Password
+            'password'        = $encPassword
             'userName'        = $UserName
             'loginMsgAck'     = 'true'}
 
@@ -57,22 +59,20 @@ function Get-HPEOVAuthToken
     }
 }
 
-function Delete-HPEOVAlert
+function Remove-HPEOVAlert
 {
     [CmdletBinding()]
     param (
-        [Parameter(Mandatory = $true,
-        ValueFromPipeline    = $true)]
+        [Parameter(Mandatory = $true)]
         [String] 
         $OVApplianceIP,
         
-        [Parameter(Mandatory = $true,
-        ValueFromPipeline    = $true)]
+        [Parameter(Mandatory         = $true,
+                   ValueFromPipeline = $true)]
         [String] 
         $Auth,
         
-        [Parameter(Mandatory = $true,
-        ValueFromPipeline    = $true)]
+        [Parameter(Mandatory = $true)]
         [String] 
         $AlertID
     )
@@ -80,20 +80,23 @@ function Delete-HPEOVAlert
     {
         $headers = [Ordered]@{
             'X-Api-Version' = '200'
-            'Auth'          = $Auth}
-
-        $uri = 'https://' + $OVApplianceIP + '/rest/alerts/' + $AlertID + '?force=true'
+            'Auth'          = $Auth}   
+        $alerts = $AlertID.Split(',')
     }
     process
     {
-        try
+        foreach ($alert in $alerts)
         {
-            Invoke-RestMethod -Method Delete -Uri $uri -Headers $headers | Out-Null
-            Write-Host "Alert $AlertID cleared"
+            try
+            {
+                $uri = 'https://' + $OVApplianceIP + '/rest/alerts/' + $alert + '?force=true'
+                Invoke-RestMethod -Method Delete -Uri $uri -Headers $headers | Out-Null
+            }
+            catch
+            {
+                $_.Exception.Message
+            }
         }
-        catch
-        {
-            $_.Exception.Message
-        }    
+    
     }
 }
