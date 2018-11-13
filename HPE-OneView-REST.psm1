@@ -97,6 +97,5 @@ function Remove-HPEOVAlert
                 $_.Exception.Message
             }
         }
-    
     }
 }
